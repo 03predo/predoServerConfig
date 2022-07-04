@@ -11,7 +11,8 @@ def new_connection(dut, driver):
     dut.expect('httpd_accept_conn: accepted new fd =')
     dut.expect('connection complete')
     dut.expect('httpd_req_new')
-    dut.expect('read_block: received HTTP request block size =')
+    dut.expect('processing url = /predoServer')
+    dut.expect('received URI = /predoServer')
     dut.expect('httpd_req_delete')
     dut.expect('success')
     
@@ -19,18 +20,20 @@ def new_max_connection(dut, driver):
     driver.get('http://192.168.2.102/predoServer')
     dut.expect('httpd_accept_conn: no free sessions, closing least recently used')
     dut.expect('httpd_server: processing ctrl message')
-    #dut.expect('httpd_sess_delete: fd =')
+    dut.expect('httpd_sess_delete: fd =')
     dut.expect('httpd_accept_conn: session available, starting to accept')
     dut.expect('httpd_accept_conn: accepted new fd =')
     dut.expect('connection complete')
     dut.expect('httpd_req_new')
-    dut.expect('read_block: received HTTP request block size =')
+    dut.expect('processing url = /predoServer')
+    dut.expect('received URI = /predoServer')
     dut.expect('success')
     
 def new_req(dut, driver):
     driver.get('http://192.168.2.102/predoServer')
     dut.expect('httpd_req_new')
-    dut.expect('read_block: received HTTP request block size =')
+    dut.expect('processing url = /predoServer')
+    dut.expect('received URI = /predoServer')
     dut.expect('httpd_req_delete')
     dut.expect('success')
     
