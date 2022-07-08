@@ -7,39 +7,37 @@ from selenium.webdriver.chrome.options import Options
 
 def new_connection(dut, driver):
     driver.get('http://192.168.2.102/predoServer')
-    dut.expect('httpd_accept_conn: session available, starting to accept')
-    dut.expect('httpd_accept_conn: accepted new fd =')
+    dut.expect('session available, starting to accept')
+    dut.expect('accepted new fd =')
     dut.expect('connection complete')
-    dut.expect('httpd_req_new')
-    dut.expect('processing url = /predoServer')
+    dut.expect('processing new request on socket')
     dut.expect('received URI = /predoServer')
-    dut.expect('httpd_req_delete')
-    dut.expect('success')
+    dut.expect('response headers sent')
+    dut.expect('deleted request')
     
 def new_max_connection(dut, driver):
     driver.get('http://192.168.2.102/predoServer')
-    dut.expect('httpd_accept_conn: no free sessions, closing least recently used')
-    dut.expect('httpd_server: processing ctrl message')
-    dut.expect('httpd_sess_delete: fd =')
-    dut.expect('httpd_accept_conn: session available, starting to accept')
-    dut.expect('httpd_accept_conn: accepted new fd =')
+    dut.expect('no free sessions, closing least recently used')
+    dut.expect('processing ctrl message')
+    dut.expect('deleting session on fd')
+    dut.expect('session available, starting to accept')
+    dut.expect('accepted new fd =')
     dut.expect('connection complete')
-    dut.expect('httpd_req_new')
-    dut.expect('processing url = /predoServer')
+    dut.expect('processing new request on socket')
     dut.expect('received URI = /predoServer')
-    dut.expect('success')
+    dut.expect('response headers sent')
+    dut.expect('deleted request')
     
 def new_req(dut, driver):
     driver.get('http://192.168.2.102/predoServer')
-    dut.expect('httpd_req_new')
-    dut.expect('processing url = /predoServer')
+    dut.expect('processing new request on socket')
     dut.expect('received URI = /predoServer')
-    dut.expect('httpd_req_delete')
-    dut.expect('success')
+    dut.expect('response headers sent')
+    dut.expect('deleted request')
     
 def close_connection(dut, driver):
     driver.close()
-    dut.expect('httpd_sess_delete: fd =')
+    dut.expect('deleting session on fd')
     dut.expect('httpd_server: doing select')
    
 def test_single_client(dut):
