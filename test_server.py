@@ -1,6 +1,4 @@
 import time
-import re
-import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 #pytest -s shows log o/p
@@ -100,7 +98,7 @@ def test_multi_client(dut):
     time.sleep(1)  
     close_connection(dut, driver4)
     time.sleep(1)
-    
+
 def test_basic_shutdown(dut):
     dut.expect('main: Server Started')
     chrome_options = Options()
@@ -110,4 +108,4 @@ def test_basic_shutdown(dut):
     driver = webdriver.Chrome(options=chrome_options)
     send_shutdown(dut, driver)
     
-    
+   
