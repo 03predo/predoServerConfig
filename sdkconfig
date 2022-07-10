@@ -1192,11 +1192,6 @@ CONFIG_NEWLIB_TIME_SYSCALL_USE_RTC_HRT=y
 # end of OpenThread
 
 #
-# HTTP Server
-#
-# end of HTTP Server
-
-#
 # PThreads
 #
 CONFIG_PTHREAD_TASK_PRIO_DEFAULT=5
