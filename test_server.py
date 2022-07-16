@@ -172,7 +172,7 @@ class TestBasicFunctionality(SeleniumRequests, TcpRequests):
         time.sleep(3)
         clientSocket2.close()
         dut.expect('active sockets: 0')
-        time.sleep(3)
+        time.sleep(1)
         
 class TestParser(TcpRequests):
     def test_invalid_method(self, dut):
