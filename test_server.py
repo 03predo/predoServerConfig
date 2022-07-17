@@ -199,3 +199,79 @@ class TestParser(TcpRequests):
         super().base_invalid_req(dut, req, 28)
         req = "GET /predoServer HTTPX/1.1\r\nHost:192.168.2.102\r\n\n\n"
         super().base_invalid_req(dut, req, 28)
+        
+    def test_invalid_version(self, dut):
+        dut.expect('main: Server Started')
+        req = "GET /predoServer HTTP/99.1\r\nHost:192.168.2.102\r\n\n\n"
+        super().base_invalid_req(dut, req, 14)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/9999.1\r\nHost:192.168.2.102\r\n\n\n"
+        super().base_invalid_req(dut, req, 14)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/1.9999\r\nHost:192.168.2.102\r\n\n\n"
+        super().base_invalid_req(dut, req, 14)
+        time.sleep(1)
+        
+    def test_invalid_LF(self, dut):
+        dut.expect('main: Server Started')
+        req = "GET /predoServer HTTP/1.1\r\rHost:192.168.2.102\r\n\n\n"
+        super().base_invalid_req(dut, req, 23)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/1.1\r Host:192.168.2.102\r\n\n\n"
+        super().base_invalid_req(dut, req, 23)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\rDummyField:DummyValue\r\n\n\n"
+        super().base_invalid_req(dut, req, 23)
+        time.sleep(1)
+        
+    def test_invalid_header_field_token(self, dut):
+        dut.expect('main: Server Started')
+        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummy/Field:DummyValue\r\n\n\n"
+        super().base_invalid_req(dut, req, 24)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummyFieldDummyValue\r\n\n\n"
+        super().base_invalid_req(dut, req, 24)
+        time.sleep(1)
+        
+    def test_invalid_header_field_token(self, dut):
+        dut.expect('main: Server Started')
+        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummy/Field:DummyValue\r\n\n\n"
+        super().base_invalid_req(dut, req, 24)
+        time.sleep(1)
+        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummyFieldDummyValue\r\n\n\n"
+        super().base_invalid_req(dut, req, 24)
+        time.sleep(1)
+        
+    def test_parser_overflow(self, dut):
+        dut.expect('main: Server Started')
+        ip = str(os.environ.get('ESP_IP'))
+        uri = "X"
+        for x in range(500):
+            uri += "X"
+        req = "GET /" + uri + " HTTP/1.1\r\nHos"
+        clientSocket = super().tcp_connection(dut, ip)
+        dut.expect('active sockets: 1')
+        super().tcp_req(dut, clientSocket, req)
+        dut.expect('request URI/header too long')
+        dut.expect('414 URI Too Long - URI is too long')
+        dataFromServer = self.tcp_recv(dut, clientSocket)
+        dut.expect('deleting session')
+        dut.expect('active sockets: 0')
+        assert("HTTP/1.1 414 URI Too Long" in dataFromServer)
+        time.sleep(1)
+        ip = str(os.environ.get('ESP_IP'))
+        field = "X"
+        for x in range(10000):
+            field += "X"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + field
+        clientSocket = super().tcp_connection(dut, ip)
+        dut.expect('active sockets: 1')
+        super().tcp_req(dut, clientSocket, req)
+        dut.expect('request URI/header too long')
+        dut.expect('HTTP/1.1 431 Request Header Fields Too Large')
+        dataFromServer = self.tcp_recv(dut, clientSocket)
+        dut.expect('deleting session')
+        dut.expect('active sockets: 0')
+        assert("HTTP/1.1 431 Request Header Fields Too Large" in dataFromServer)
+        time.sleep(1)
+        
