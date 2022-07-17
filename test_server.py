@@ -268,7 +268,7 @@ class TestParser(TcpRequests):
         dut.expect('active sockets: 1')
         super().tcp_req(dut, clientSocket, req)
         dut.expect('request URI/header too long')
-        dut.expect('HTTP/1.1 431 Request Header Fields Too Large')
+        dut.expect('431 Request Header Fields Too Large')
         dataFromServer = self.tcp_recv(dut, clientSocket)
         dut.expect('deleting session')
         dut.expect('active sockets: 0')
