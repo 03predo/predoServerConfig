@@ -153,7 +153,7 @@ class TestBasicFunctionality(SeleniumRequests, TcpRequests):
         dut.expect('main: Server Started')
         clientSocket1 = super().tcp_connection(dut, ip)
         dut.expect('active sockets: 1')
-        data = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        data = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().tcp_req(dut, clientSocket1, data)
         dut.expect('received URI = /predoServer')
         dataFromServer = super().tcp_recv(dut, clientSocket1)
@@ -161,90 +161,123 @@ class TestBasicFunctionality(SeleniumRequests, TcpRequests):
         assert("HTTP/1.1 200 OK" in dataFromServer)
         clientSocket2 = super().tcp_connection(dut, ip)
         dut.expect('active sockets: 2')
-        data = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        data = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().tcp_req(dut, clientSocket2, data)
         dut.expect('received URI = /predoServer')
         dataFromServer = super().tcp_recv(dut, clientSocket2)
         dut.expect('deleted request')
         assert("HTTP/1.1 200 OK" in dataFromServer)
-        clientSocket1.close()
+        super().tcp_close(dut, clientSocket1)
         dut.expect('active sockets: 1')
         time.sleep(3)
-        clientSocket2.close()
+        super().tcp_close(dut, clientSocket2)
         dut.expect('active sockets: 0')
         time.sleep(1)
+    
+    def test_multi_tcp(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
+        dut.expect('main: Server Started')
+        clientSocket1 = super().tcp_connection(dut, ip)
+        dut.expect('active sockets: 1')
+        clientSocket2 = super().tcp_connection(dut, ip)
+        dut.expect('active sockets: 2')
+        clientSocket3 = super().tcp_connection(dut, ip)
+        dut.expect('active sockets: 3')
+        data = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
+        clientSocket1.send(data.encode())
+        clientSocket2.send(data.encode())
+        clientSocket3.send(data.encode())
+        dut.expect('processing new request on socket')
+        dataFromServer = super().tcp_recv(dut, clientSocket1)
+        dut.expect('deleted request')
+        assert("HTTP/1.1 200 OK" in dataFromServer)
+        dut.expect('processing new request on socket')
+        dataFromServer = super().tcp_recv(dut, clientSocket2)
+        dut.expect('deleted request')
+        assert("HTTP/1.1 200 OK" in dataFromServer)
+        dut.expect('processing new request on socket')
+        dataFromServer = super().tcp_recv(dut, clientSocket3)
+        dut.expect('deleted request')
+        assert("HTTP/1.1 200 OK" in dataFromServer)
         
 class TestParser(TcpRequests):
     def test_invalid_method(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "NA /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "NA /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 16) #HPE_INVALID_METHOD = 16
-        req = "GE /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GE /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 16)
     
     def test_invalid_url(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 17) #HPE_INVALID_METHOD = 17
-        req = "GET ?predoServer HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET ?predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 17)
-        req = "GET /predo?Server HTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predo?Server HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 17)
     
     def test_invalid_HTTP(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET /predoServer XTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer XTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 28) #HPE_INVALID_CONSTANT = 28
-        req = "GET /predoServer HTTTP/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 28)
-        req = "GET /predoServer HTTPX/1.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTPX/1.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 28)
         
     def test_invalid_version(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET /predoServer HTTP/99.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTP/99.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 14)
         time.sleep(1)
-        req = "GET /predoServer HTTP/9999.1\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTP/9999.1\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 14)
         time.sleep(1)
-        req = "GET /predoServer HTTP/1.9999\r\nHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTP/1.9999\r\nHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 14)
         time.sleep(1)
         
     def test_invalid_LF(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET /predoServer HTTP/1.1\r\rHost:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\rHost:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 23)
         time.sleep(1)
-        req = "GET /predoServer HTTP/1.1\r Host:192.168.2.102\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r Host:" + ip + "\r\n\n\n"
         super().base_invalid_req(dut, req, 23)
         time.sleep(1)
-        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\rDummyField:DummyValue\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\rDummyField:DummyValue\r\n\n\n"
         super().base_invalid_req(dut, req, 23)
         time.sleep(1)
         
     def test_invalid_header_field_token(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummy/Field:DummyValue\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\nDummy/Field:DummyValue\r\n\n\n"
         super().base_invalid_req(dut, req, 24)
         time.sleep(1)
-        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummyFieldDummyValue\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\nDummyFieldDummyValue\r\n\n\n"
         super().base_invalid_req(dut, req, 24)
         time.sleep(1)
         
     def test_invalid_header_field_token(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
-        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummy/Field:DummyValue\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\nDummy/Field:DummyValue\r\n\n\n"
         super().base_invalid_req(dut, req, 24)
         time.sleep(1)
-        req = "GET /predoServer HTTP/1.1\r\nHost:192.168.2.102\r\nDummyFieldDummyValue\r\n\n\n"
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\nDummyFieldDummyValue\r\n\n\n"
         super().base_invalid_req(dut, req, 24)
         time.sleep(1)
         
     def test_parser_overflow(self, dut):
-        dut.expect('main: Server Started')
         ip = str(os.environ.get('ESP_IP'))
+        dut.expect('main: Server Started')
         uri = "X"
         for x in range(500):
             uri += "X"
@@ -275,3 +308,37 @@ class TestParser(TcpRequests):
         assert("HTTP/1.1 431 Request Header Fields Too Large" in dataFromServer)
         time.sleep(1)
         
+class TestStress(SeleniumRequests, TcpRequests):
+    def test_single_client_stress(self, dut):
+        ip = str(os.environ.get('ESP_IP'))
+        dut.expect('main: Server Started')
+        req = "GET /predoServer HTTP/1.1\r\nHost:" + ip + "\r\n\n\n"
+        clientSocket = super().tcp_connection(dut, ip)
+        for x in range(100):
+            super().tcp_req(dut, clientSocket, req)
+            dataFromServer = super().tcp_recv(dut, clientSocket)
+            assert("HTTP/1.1 200 OK" in dataFromServer or "<!DOCTYPE html>" in dataFromServer)
+        super().tcp_close(dut, clientSocket)
+        for x in range(100):
+            clientSocket = super().tcp_connection(dut, ip)
+            super().tcp_close(dut, clientSocket)
+        
+    def test_multi_client_stress(self, dut):
+        ip = 'http://' + str(os.environ.get('ESP_IP'))
+        dut.expect('main: Server Started')
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        driver1 = webdriver.Chrome(options=chrome_options)
+        driver2 = webdriver.Chrome(options=chrome_options)
+        driver3 = webdriver.Chrome(options=chrome_options)
+        driver4 = webdriver.Chrome(options=chrome_options)
+        driverList = [driver1, driver2, driver3, driver4]
+        for x in range(100):
+            for driver in driverList:
+                super().new_connection(dut, driver, ip)
+        
+        super().close_connection(dut, driver2)
+        super().close_connection(dut, driver3)
+        super().close_connection(dut, driver4)
