@@ -71,7 +71,7 @@ class TcpRequests:
         dut.expect('processing new request on socket')
 
     def tcp_recv(self, dut, clientSocket):
-        dataFromServer = clientSocket.recv(1024)
+        dataFromServer = clientSocket.recv(4096)
         dut.expect('response headers sent')
         return dataFromServer.decode()
     
