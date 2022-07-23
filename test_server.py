@@ -279,9 +279,9 @@ class TestParser(TcpRequests):
         ip = str(os.environ.get('ESP_IP'))
         dut.expect('main: Server Started')
         uri = "X"
-        for x in range(500):
+        for x in range(1015):
             uri += "X"
-        req = "GET /" + uri + " HTTP/1.1\r\nHos"
+        req = "GET /" + uri + " HTTP/1.1\r\nHost:" + ip
         clientSocket = super().tcp_connection(dut, ip)
         dut.expect('active sockets: 1')
         super().tcp_req(dut, clientSocket, req)
@@ -294,7 +294,7 @@ class TestParser(TcpRequests):
         time.sleep(1)
         ip = str(os.environ.get('ESP_IP'))
         field = "X"
-        for x in range(10000):
+        for x in range(1500):
             field += "X"
         req = "GET /predoServer HTTP/1.1\r\nHost:" + field
         clientSocket = super().tcp_connection(dut, ip)
