@@ -1,6 +1,7 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import socket
 import os
 #pytest -s shows log o/p
@@ -33,6 +34,17 @@ class SeleniumRequests:
         dut.expect('processing new request on socket')
         dut.expect('received URI = /predoServer')
         dut.expect('response headers sent')
+        dut.expect('deleted request')
+        
+    def send_post(self, dut, driver, data):
+        lcd = driver.find_element(By.ID, 'lcd')
+        lcd.send_keys(data)
+        lcd.submit()
+        dut.expect('processing new request on socket')
+        dut.expect('received URI = /predoServer')
+        dut.expect('con_len: ' + str(len(data) + 4))
+        dut.expect('response headers sent')
+        dut.expect('sending "' + data + '" to lcd')
         dut.expect('deleted request')
         
     def close_connection(self, dut, driver):
@@ -200,6 +212,21 @@ class TestBasicFunctionality(SeleniumRequests, TcpRequests):
         dut.expect('deleted request')
         assert("HTTP/1.1 200 OK" in dataFromServer)
         
+    def test_basic_post(self, dut):
+        ip = 'http://' + str(os.environ.get('ESP_IP'))
+        print("IP: " + ip)
+        dut.expect('main: Server Started')
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        driver = webdriver.Chrome(options=chrome_options)
+        super().new_connection(dut, driver, ip)
+        super().send_post(dut, driver, 'hello world')
+        super().send_post(dut, driver, 'post this data')
+
+        
+        
 class TestParser(TcpRequests):
     def test_invalid_method(self, dut):
         ip = str(os.environ.get('ESP_IP'))
@@ -342,3 +369,19 @@ class TestStress(SeleniumRequests, TcpRequests):
         super().close_connection(dut, driver2)
         super().close_connection(dut, driver3)
         super().close_connection(dut, driver4)
+        
+    def test_post_stress(self, dut):
+        ip = 'http://' + str(os.environ.get('ESP_IP'))
+        print("IP: " + ip)
+        dut.expect('main: Server Started')
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        driver = webdriver.Chrome(options=chrome_options)
+        super().new_connection(dut, driver, ip)
+        for x in range(100):
+            super().send_post(dut, driver, "data to post")
+        
+        super().close_connection(dut, driver)
+        
